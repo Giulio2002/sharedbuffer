@@ -146,22 +146,22 @@ func delete(node *Node, interval Interval) *Node {
 		node.Right = delete(node.Right, interval)
 	} else {
 		if (node.Left == nil) || (node.Right == nil) {
-			var temp *Node
-			if temp = node.Left; temp == nil {
-				temp = node.Right
+			var tmp *Node
+			if tmp = node.Left; tmp == nil {
+				tmp = node.Right
 			}
 
-			if temp == nil {
-				temp = node
+			if tmp == nil {
+				tmp = node
 				node = nil
 			} else {
-				*node = *temp
+				*node = *tmp
 			}
-			temp = nil
+			tmp = nil
 		} else {
-			temp := minValueNode(node.Right)
-			node.Interval = temp.Interval
-			node.Right = delete(node.Right, temp.Interval)
+			tmp := minValueNode(node.Right)
+			node.Interval = tmp.Interval
+			node.Right = delete(node.Right, tmp.Interval)
 		}
 	}
 
