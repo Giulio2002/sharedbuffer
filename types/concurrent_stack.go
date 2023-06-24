@@ -18,6 +18,12 @@ func (c *ConcurrentStack[T]) Add(elem T) {
 	c.l = append(c.l, elem)
 }
 
+func (c *ConcurrentStack[T]) Size() int {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return len(c.l)
+}
+
 func (c *ConcurrentStack[T]) Pop() (obj T, found bool) {
 	c.mu.Lock()
 	defer c.mu.Unlock()

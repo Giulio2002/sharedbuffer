@@ -1,8 +1,6 @@
 package fsm
 
 import (
-	"sort"
-
 	"github.com/Giulio2002/sharedpool/types"
 )
 
@@ -16,30 +14,19 @@ type dirtySegmentMetadata struct {
 
 type countingFreeSpaceManager struct {
 	// store location of dirty segments.
-	nasties []dirtySegmentMetadata
-	// store index of previously allocated dirty segments.
-	cleanies *types.ConcurrentStack[int]
+	nasties *types.SortedList[dirtySegmentMetadata]
 }
 
 func NewCountingFreeSpaceManager() FreeSpaceManager {
 	return &countingFreeSpaceManager{
-		cleanies: types.NewConcurrentStack[int](),
+		nasties: types.NewSortedList[dirtySegmentMetadata](func(a, b dirtySegmentMetadata) bool {
+			return a.index < b.index
+		}),
 	}
 }
 
 func (c *countingFreeSpaceManager) MarkBusy(startPos, n int) {
-	defer sort.Slice(c.nasties, func(i, j int) bool {
-		return c.nasties[i].index < c.nasties[j].index
-	})
-	// If we can use an idle entry from the stack let us do so.
-	freeIndex, found := c.cleanies.Pop()
-	// If it was precached just use the stack entry index.
-	if found {
-		c.nasties[freeIndex].index = startPos
-		c.nasties[freeIndex].n = n
-	}
-	// we do not have any pre-allocated dirtySegmentMetadatas? noice, we just make one :D.
-	c.nasties = append(c.nasties, dirtySegmentMetadata{
+	c.nasties.Add(dirtySegmentMetadata{
 		index: startPos,
 		n:     n,
 	})
@@ -47,28 +34,34 @@ func (c *countingFreeSpaceManager) MarkBusy(startPos, n int) {
 
 // MarkFree marks contiguous allocation as free, we can just use the start position and do simple linear search.
 func (c *countingFreeSpaceManager) MarkFree(startPos, _ int) {
-	defer sort.Slice(c.nasties, func(i, j int) bool {
-		return c.nasties[i].index < c.nasties[j].index
+	_, idx, found := c.nasties.Search(func(a dirtySegmentMetadata) bool {
+		return a.index >= startPos
 	})
-	i := sort.Search(len(c.nasties), func(i int) bool {
-		return c.nasties[i].index == startPos
-	})
+	if !found {
+		panic("bad")
+	}
+
 	// Now it is clean :D.
-	c.nasties[i].index = freeIndex
-	c.cleanies.Add(i)
+	c.nasties.Remove(idx)
 }
 
 // Get an index which is free and accomadate for n bytes.
 func (c *countingFreeSpaceManager) FirstFreeIndex(n int) int {
 	// stands for begining of buffer, this is a first fit algo
 	currentIndex := 0
-	for i := range c.nasties {
-		currentIndexEnd := currentIndex + n
-		nextDirtyIndex := c.nasties[i].index
-		if nextDirtyIndex < currentIndex || nextDirtyIndex > currentIndexEnd {
-			break
+	c.nasties.Range(func(val dirtySegmentMetadata, idx, l int) bool {
+		if val.index == freeIndex {
+			return true
 		}
-		currentIndexEnd = nextDirtyIndex + c.nasties[i].n
-	}
+		currentIndexEnd := currentIndex + n
+		nextDirtyIndex := val.index
+		nextDirtyIndexEnd := val.index + val.n
+		if currentIndexEnd < nextDirtyIndex || nextDirtyIndexEnd < currentIndex {
+			return false
+		}
+		currentIndex = nextDirtyIndexEnd
+		return true
+	})
+
 	return currentIndex
 }
