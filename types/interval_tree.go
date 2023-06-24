@@ -53,30 +53,27 @@ func getBalance(node *Node) int {
 	return height(node.Left) - height(node.Right)
 }
 
-// rightRotate performs a right rotation around a given node
-func rightRotate(y *Node) *Node {
-	x := y.Left
-	T2 := x.Right
-	x.Right = y
-	y.Left = T2
-	y.Height = max(height(y.Left), height(y.Right)) + 1
-	y.Max = max(y.Interval.High, max(getMax(y.Left), getMax(y.Right)))
-	x.Height = max(height(x.Left), height(x.Right)) + 1
-	x.Max = max(x.Interval.High, max(getMax(x.Left), getMax(x.Right)))
-	return x
-}
+// rotate performs a rotation (either left or right) around a given node
+func rotate(node *Node, isLeftRotation bool) *Node {
+	var newRoot *Node
 
-// leftRotate performs a left rotation around a given node
-func leftRotate(x *Node) *Node {
-	y := x.Right
-	T2 := y.Left
-	y.Left = x
-	x.Right = T2
-	x.Height = max(height(x.Left), height(y.Right)) + 1
-	x.Max = max(x.Interval.High, max(getMax(x.Left), getMax(x.Right)))
-	y.Height = max(height(y.Left), height(y.Right)) + 1
-	y.Max = max(y.Interval.High, max(getMax(y.Left), getMax(y.Right)))
-	return y
+	if isLeftRotation {
+		newRoot = node.Right
+		node.Right = newRoot.Left
+		newRoot.Left = node
+	} else {
+		newRoot = node.Left
+		node.Left = newRoot.Right
+		newRoot.Right = node
+	}
+
+	node.Height = max(height(node.Left), height(node.Right)) + 1
+	node.Max = max(node.Interval.High, max(getMax(node.Left), getMax(node.Right)))
+
+	newRoot.Height = max(height(newRoot.Left), height(newRoot.Right)) + 1
+	newRoot.Max = max(newRoot.Interval.High, max(getMax(newRoot.Left), getMax(newRoot.Right)))
+
+	return newRoot
 }
 
 // insert is a recursive function that inserts a new interval in the tree, maintaining the AVL property
@@ -103,21 +100,21 @@ func insert(node *Node, interval Interval) *Node {
 	balance := getBalance(node)
 
 	if balance > 1 && interval.Low < node.Left.Interval.Low {
-		return rightRotate(node)
+		return rotate(node, false)
 	}
 
 	if balance < -1 && interval.Low > node.Right.Interval.Low {
-		return leftRotate(node)
+		return rotate(node, true)
 	}
 
 	if balance > 1 && interval.Low > node.Left.Interval.Low {
-		node.Left = leftRotate(node.Left)
-		return rightRotate(node)
+		node.Left = rotate(node.Left, true)
+		return rotate(node, false)
 	}
 
 	if balance < -1 && interval.Low < node.Right.Interval.Low {
-		node.Right = rightRotate(node.Right)
-		return leftRotate(node)
+		node.Right = rotate(node.Right, false)
+		return rotate(node, true)
 	}
 
 	return node
@@ -145,28 +142,15 @@ func delete(node *Node, interval Interval) *Node {
 	} else if interval.Low > node.Interval.Low {
 		node.Right = delete(node.Right, interval)
 	} else {
-		if (node.Left == nil) || (node.Right == nil) {
-			var tmp *Node
-			if tmp = node.Left; tmp == nil {
-				tmp = node.Right
-			}
-
-			if tmp == nil {
-				tmp = node
-				node = nil
-			} else {
-				*node = *tmp
-			}
-			tmp = nil
-		} else {
-			tmp := minValueNode(node.Right)
-			node.Interval = tmp.Interval
-			node.Right = delete(node.Right, tmp.Interval)
+		if node.Left == nil {
+			return node.Right
+		} else if node.Right == nil {
+			return node.Left
 		}
-	}
 
-	if node == nil {
-		return node
+		tmp := minValueNode(node.Right)
+		node.Interval = tmp.Interval
+		node.Right = delete(node.Right, tmp.Interval)
 	}
 
 	node.Height = 1 + max(height(node.Left), height(node.Right))
@@ -174,22 +158,18 @@ func delete(node *Node, interval Interval) *Node {
 
 	balance := getBalance(node)
 
-	if balance > 1 && getBalance(node.Left) >= 0 {
-		return rightRotate(node)
+	if balance > 1 {
+		if getBalance(node.Left) < 0 {
+			node.Left = rotate(node.Left, true)
+		}
+		return rotate(node, false)
 	}
 
-	if balance < -1 && getBalance(node.Right) <= 0 {
-		return leftRotate(node)
-	}
-
-	if balance > 1 && getBalance(node.Left) < 0 {
-		node.Left = leftRotate(node.Left)
-		return rightRotate(node)
-	}
-
-	if balance < -1 && getBalance(node.Right) > 0 {
-		node.Right = rightRotate(node.Right)
-		return leftRotate(node)
+	if balance < -1 {
+		if getBalance(node.Right) > 0 {
+			node.Right = rotate(node.Right, false)
+		}
+		return rotate(node, true)
 	}
 
 	return node

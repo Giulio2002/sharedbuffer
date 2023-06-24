@@ -21,7 +21,5 @@ func (t *intervalTreeFreeSpaceManager) MarkFree(startPos, count int) {
 }
 
 func (t *intervalTreeFreeSpaceManager) FirstFreeIndex(count int) int {
-	interval := t.tree.FindFreeInterval(count)
-
-	return interval.Low
+	return t.tree.FindFreeInterval(count).Low
 }
