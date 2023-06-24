@@ -213,36 +213,29 @@ func (it *IntervalTree) Delete(interval Interval) {
 	it.Root = delete(it.Root, interval)
 }
 
-// FindFreeInterval finds and returns the smallest interval of size n that does not overlap with any intervals in the tree
-func (it *IntervalTree) FindFreeInterval(n int) Interval {
-	nodes := inOrder(it.Root)
-	if len(nodes) == 0 {
-		return Interval{1, n + 1}
+// findFreeIntervalHelper finds a free interval of size n within the subtree rooted at node.
+func findFreeIntervalHelper(node *Node, n int, previousHigh int) Interval {
+	if node == nil {
+		return Interval{previousHigh + 1, previousHigh + n + 1} // If the subtree is empty, return the interval after the previous high
 	}
 
-	// Check for space before the first interval
-	if nodes[0].Interval.Low > n {
-		return Interval{1, n + 1}
+	if node.Left != nil && node.Left.Max >= n {
+		// If the maximum endpoint in the left subtree is greater than or equal to n,
+		// recursively search in the left subtree.
+		return findFreeIntervalHelper(node.Left, n, previousHigh)
 	}
 
-	// Check for space between intervals
-	for i := 1; i < len(nodes); i++ {
-		if nodes[i].Interval.Low-nodes[i-1].Interval.High > n {
-			return Interval{nodes[i-1].Interval.High + 1, nodes[i-1].Interval.High + n + 1}
-		}
+	if node.Interval.Low-previousHigh > n {
+		// If the gap between the current interval and the previous high is greater than n,
+		// we have found a free interval.
+		return Interval{previousHigh + 1, previousHigh + n + 1}
 	}
 
-	// Check for space after the last interval
-	return Interval{nodes[len(nodes)-1].Interval.High + 1, nodes[len(nodes)-1].Interval.High + n + 1}
+	// Otherwise, recursively search in the right subtree.
+	return findFreeIntervalHelper(node.Right, n, node.Interval.High)
 }
 
-// inOrder returns an array of pointers to nodes obtained by performing an in-order traversal of a given tree
-func inOrder(node *Node) []*Node {
-	nodes := []*Node{}
-	if node != nil {
-		nodes = append(nodes, inOrder(node.Left)...)
-		nodes = append(nodes, node)
-		nodes = append(nodes, inOrder(node.Right)...)
-	}
-	return nodes
+// FindFreeInterval finds and returns the smallest interval of size n that does not overlap with any intervals in the tree.
+func (it *IntervalTree) FindFreeInterval(n int) Interval {
+	return findFreeIntervalHelper(it.Root, n, 0)
 }
