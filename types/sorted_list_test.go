@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	"sort"
 	"testing"
 
@@ -31,7 +30,6 @@ func TestSortedList(t *testing.T) {
 	s.Set(4, 5.0)
 	assert.Equal(t, 5.0, s.Get(3))
 	cpyList = s.UnderlyingCopy()
-	fmt.Println(cpyList)
 	// now do the search with success
 	res, idx, found := s.Search(func(a float64) bool {
 		return a >= 1 // we search for 1.

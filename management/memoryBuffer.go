@@ -1,15 +1,16 @@
 package management
 
-import "fmt"
-
-const bufferExpansion = 1.8 // increase buffer by 20% of the max asked.
+const bufferExpansion = 1.8         // increase buffer by 20% of the max asked.
+const initialBufferSize = 1_000_000 // 1 MB of initial buffer size is oke
 
 type memoryBuffer struct {
 	u []byte
 }
 
 func NewMemoryBuffer() *memoryBuffer {
-	return &memoryBuffer{}
+	return &memoryBuffer{
+		u: make([]byte, initialBufferSize),
+	}
 }
 
 func (m *memoryBuffer) Get(startPos, n int) []byte {
@@ -25,6 +26,5 @@ func (m *memoryBuffer) Get(startPos, n int) []byte {
 	for i := startPos; i < startPos+n; i++ {
 		m.u[i] = 0x00
 	}
-	fmt.Println("taken", startPos)
 	return m.u[startPos : startPos+n]
 }

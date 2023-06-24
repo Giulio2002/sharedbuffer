@@ -1,7 +1,6 @@
 package sharedpool
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/Giulio2002/sharedpool/fsm"
@@ -31,7 +30,6 @@ func (s *SharedPool) Make(n int) ([]byte, freeFunc) {
 	s.fsm.MarkBusy(startPos, n)
 	return s.buffer.Get(startPos, n), func() {
 		s.mu.Lock()
-		fmt.Println("freed", startPos)
 		s.fsm.MarkFree(startPos, n)
 		defer s.mu.Unlock()
 	}
