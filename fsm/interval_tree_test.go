@@ -17,9 +17,10 @@ func TestITreeFSMTop(t *testing.T) {
 	f := NewIntervalTreeFreeSpaceManager()
 
 	f.Dirty(1000)
-	offset, _ := f.Dirty(200)
+	f.Dirty(200)
+	offset, _ := f.Dirty(300)
 
-	assert.Equal(t, 1002, offset)
+	assert.Equal(t, 1203, offset)
 }
 
 func TestITreeFSMBottom(t *testing.T) {
