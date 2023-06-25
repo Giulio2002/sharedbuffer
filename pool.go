@@ -26,11 +26,10 @@ func NewSharedPool(fsm fsm.FreeSpaceManager, buffer management.Buffer) *SharedPo
 func (s *SharedPool) Make(n int) ([]byte, freeFunc) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	startPos := s.fsm.FirstFreeIndex(n)
-	s.fsm.MarkBusy(startPos, n)
-	return s.buffer.Get(startPos, n), func() {
+	offset, cancelFn := s.fsm.Dirty(n)
+	return s.buffer.Get(offset, n), func() {
 		s.mu.Lock()
-		s.fsm.MarkFree(startPos, n)
+		cancelFn()
 		defer s.mu.Unlock()
 	}
 }

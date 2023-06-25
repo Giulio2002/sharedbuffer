@@ -12,14 +12,11 @@ func NewIntervalTreeFreeSpaceManager() FreeSpaceManager {
 	}
 }
 
-func (t *intervalTreeFreeSpaceManager) MarkBusy(startPos, count int) {
-	t.tree.Insert(types.Interval{startPos, startPos + count})
-}
-
-func (t *intervalTreeFreeSpaceManager) MarkFree(startPos, count int) {
-	t.tree.Delete(types.Interval{startPos, startPos + count})
-}
-
-func (t *intervalTreeFreeSpaceManager) FirstFreeIndex(count int) int {
-	return t.tree.FindFreeInterval(count).Low
+func (t *intervalTreeFreeSpaceManager) Dirty(size int) (offset int, c cancelFunc) {
+	offset = t.tree.FindFreeInterval(size).Low
+	t.tree.Insert(types.Interval{offset, offset + size})
+	c = func() {
+		t.tree.Delete(types.Interval{offset, offset + size})
+	}
+	return
 }

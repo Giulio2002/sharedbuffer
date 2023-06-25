@@ -23,23 +23,24 @@ func NewBitmapFreeSpaceManagerWithWordSize(wordSize int) FreeSpaceManager {
 	}
 }
 
-func (b *bitmapFreeSpaceManager) MarkBusy(startPos, count int) {
-	currentWord := startPos / b.wordSize
-	wordCount := (count + b.wordSize - 1) / b.wordSize
+func (b *bitmapFreeSpaceManager) Dirty(size int) (offset int, c cancelFunc) {
+	offset = b.findFreeSegment(size)
+	currentWord := offset / b.wordSize
+	wordCount := (size + b.wordSize - 1) / b.wordSize
 	for i := currentWord; i < currentWord+wordCount; i++ {
 		b.bitmap.Set(i, true)
 	}
-}
-
-func (b *bitmapFreeSpaceManager) MarkFree(startPos, count int) {
-	currentWord := startPos / b.wordSize
-	wordCount := (count + b.wordSize - 1) / b.wordSize
-	for i := currentWord; i < currentWord+wordCount; i++ {
-		b.bitmap.Set(i, false)
+	c = func() {
+		currentWord := offset / b.wordSize
+		wordCount := (size + b.wordSize - 1) / b.wordSize
+		for i := currentWord; i < currentWord+wordCount; i++ {
+			b.bitmap.Set(i, false)
+		}
 	}
+	return
 }
 
-func (b *bitmapFreeSpaceManager) FirstFreeIndex(count int) int {
+func (b *bitmapFreeSpaceManager) findFreeSegment(count int) int {
 	wordCount := (count + b.wordSize - 1) / b.wordSize
 	// just find first word count successive 0s bits
 	bitsCount := 0

@@ -1,7 +1,8 @@
 package fsm
 
+type cancelFunc func()
+
+// The free space manager just keeps track of the size of the free space.
 type FreeSpaceManager interface {
-	MarkBusy(startPos, count int)
-	MarkFree(startPos, count int)
-	FirstFreeIndex(count int) int
+	Dirty(size int) (offset int, cancel cancelFunc)
 }

@@ -25,28 +25,28 @@ func NewCountingFreeSpaceManager() FreeSpaceManager {
 	}
 }
 
-func (c *countingFreeSpaceManager) MarkBusy(startPos, n int) {
+func (c *countingFreeSpaceManager) Dirty(size int) (offset int, cancelFn cancelFunc) {
+	offset = c.findFirstFreeSegment(size)
 	c.nasties.Add(dirtySegmentMetadata{
-		index: startPos,
-		n:     n,
+		index: offset,
+		n:     size,
 	})
-}
+	cancelFn = func() {
+		_, idx, found := c.nasties.Search(func(a dirtySegmentMetadata) bool {
+			return a.index >= offset
+		})
+		if !found {
+			return
+		}
 
-// MarkFree marks contiguous allocation as free, we can just use the start position and do simple linear search.
-func (c *countingFreeSpaceManager) MarkFree(startPos, _ int) {
-	_, idx, found := c.nasties.Search(func(a dirtySegmentMetadata) bool {
-		return a.index >= startPos
-	})
-	if !found {
-		panic("bad")
+		// Now it is clean :D.
+		c.nasties.Remove(idx)
 	}
-
-	// Now it is clean :D.
-	c.nasties.Remove(idx)
+	return
 }
 
 // Get an index which is free and accomadate for n bytes.
-func (c *countingFreeSpaceManager) FirstFreeIndex(n int) int {
+func (c *countingFreeSpaceManager) findFirstFreeSegment(n int) int {
 	// stands for begining of buffer, this is a first fit algo
 	currentIndex := 0
 	c.nasties.Range(func(val dirtySegmentMetadata, idx, l int) bool {
