@@ -1,7 +1,7 @@
 # SharedBuffer
 
 ## Overview
-The SharedBuffer project aims to provide a solution for managing shared buffers from contiguous memory in Go. It offers three different algorithms - counting, bitmap, and interval tree - to efficiently allocate and track memory buffers within a shared memory space.
+The SharedBuffer library aims to provide a solution for managing shared buffers from contiguous memory in Go. It offers three different algorithms - counting, bitmap, and interval tree - to efficiently allocate and track memory buffers within a shared memory space.
 
 By leveraging the SharedBuffer library in their Go applications, developers can efficiently manage shared buffers from contiguous memory using counting, bitmap, or interval tree-based algorithms, based on their specific requirements and performance considerations.
 
@@ -62,7 +62,7 @@ Finding Free Slots: O(n) - The counting algorithm requires a linear scan of the 
 ### Bitmap Algorithm:
 
 The bitmap algorithm efficiently finds free slots by performing bitwise operations on the bitmap. By examining the bits within the bitmap, the algorithm can identify available slots. It searches for the first unset bit (indicating a free slot) in the bitmap and returns the corresponding slot index.
-**Note: Each slot is a word and each word has the same size so small data can cause internal fragmentation.*
+**Note: Each slot is a word and each word has the same size so small data can cause internal fragmentation.**
 
 #### Complexity
 
