@@ -7,6 +7,24 @@ import (
 	"github.com/Giulio2002/sharedbuffer/management"
 )
 
+var globalBuffer SharedBuffer
+
+func init() {
+	globalBuffer = NewConcurrentSharedBuffer(fsm.NewIntervalTreeFreeSpaceManager(), management.NewMemoryBuffer())
+}
+
+func SetGlobalBuffer(b SharedBuffer) {
+	globalBuffer = b
+}
+
+func Make(size int) ([]byte, freeFunc) {
+	return globalBuffer.Make(size)
+}
+
+type SharedBuffer interface {
+	Make(n int) ([]byte, freeFunc)
+}
+
 type freeFunc func()
 
 type ConcurrentSharedBuffer struct {
@@ -34,21 +52,19 @@ func (s *ConcurrentSharedBuffer) Make(n int) ([]byte, freeFunc) {
 	}
 }
 
-type SharedBuffer struct {
+type SimpleSharedBuffer struct {
 	fsm    fsm.FreeSpaceManager
 	buffer management.Buffer
 }
 
-func NewSharedBuffer(fsm fsm.FreeSpaceManager, buffer management.Buffer) *SharedBuffer {
-	return &SharedBuffer{
+func NewSimpleSharedBuffer(fsm fsm.FreeSpaceManager, buffer management.Buffer) *SimpleSharedBuffer {
+	return &SimpleSharedBuffer{
 		fsm:    fsm,
 		buffer: buffer,
 	}
 }
 
-func (s *SharedBuffer) Make(n int) ([]byte, freeFunc) {
+func (s *SimpleSharedBuffer) Make(n int) ([]byte, freeFunc) {
 	offset, cancelFn := s.fsm.Dirty(n)
-	return s.buffer.Get(offset, n), func() {
-		cancelFn()
-	}
+	return s.buffer.Get(offset, n), freeFunc(cancelFn)
 }

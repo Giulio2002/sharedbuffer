@@ -41,3 +41,27 @@ func TestMakeConcurrentITree(t *testing.T) {
 
 	wg.Wait()
 }
+
+func TestDefault(t *testing.T) {
+	base := uint32(0xffffff)
+	var wg sync.WaitGroup
+
+	for i := uint32(1); i <= 2_000_000; i++ {
+		wg.Add(1)
+
+		i := i
+
+		go func(base, i uint32) {
+			defer wg.Done()
+			n := base + i
+			buf, cancelfunc := Make(4)
+
+			binary.LittleEndian.PutUint32(buf, uint32(n))
+			num := binary.LittleEndian.Uint32(buf)
+			assert.Equal(t, num, n)
+			cancelfunc()
+		}(base, i)
+	}
+
+	wg.Wait()
+}

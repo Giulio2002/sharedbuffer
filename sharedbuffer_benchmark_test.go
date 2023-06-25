@@ -9,7 +9,7 @@ import (
 
 func BenchmarkContiguousLongLived(b *testing.B) {
 	maxRequest := 64
-	f := NewSharedBuffer(fsm.NewCountingFreeSpaceManager(), management.NewMemoryBuffer())
+	f := NewSimpleSharedBuffer(fsm.NewCountingFreeSpaceManager(), management.NewMemoryBuffer())
 	for i := 0; i < b.N; i++ {
 		f.Make(b.N % maxRequest)
 	}
@@ -17,7 +17,7 @@ func BenchmarkContiguousLongLived(b *testing.B) {
 
 func BenchmarkBitmapLongLived(b *testing.B) {
 	maxRequest := 64
-	f := NewSharedBuffer(fsm.NewBitmapFreeSpaceManagerWithWordSize(64), management.NewMemoryBuffer())
+	f := NewSimpleSharedBuffer(fsm.NewBitmapFreeSpaceManagerWithWordSize(64), management.NewMemoryBuffer())
 	for i := 0; i < b.N; i++ {
 		f.Make(b.N % maxRequest)
 	}
@@ -25,14 +25,14 @@ func BenchmarkBitmapLongLived(b *testing.B) {
 
 func BenchmarkITreeLongLived(b *testing.B) {
 	maxRequest := 64
-	f := NewSharedBuffer(fsm.NewIntervalTreeFreeSpaceManager(), management.NewMemoryBuffer())
+	f := NewSimpleSharedBuffer(fsm.NewIntervalTreeFreeSpaceManager(), management.NewMemoryBuffer())
 	for i := 0; i < b.N; i++ {
 		f.Make(b.N % maxRequest)
 	}
 }
 
 func BenchmarkContiguousShortLived(b *testing.B) {
-	f := NewSharedBuffer(fsm.NewCountingFreeSpaceManager(), management.NewMemoryBuffer())
+	f := NewSimpleSharedBuffer(fsm.NewCountingFreeSpaceManager(), management.NewMemoryBuffer())
 	maxRequest := 64
 	batchSize := 64
 	for i := 0; i < b.N/batchSize; i++ {
@@ -49,7 +49,7 @@ func BenchmarkContiguousShortLived(b *testing.B) {
 
 func BenchmarkBitmapShortLived(b *testing.B) {
 
-	f := NewSharedBuffer(fsm.NewBitmapFreeSpaceManagerWithWordSize(64), management.NewMemoryBuffer())
+	f := NewSimpleSharedBuffer(fsm.NewBitmapFreeSpaceManagerWithWordSize(64), management.NewMemoryBuffer())
 
 	maxRequest := 64
 	batchSize := 64
@@ -66,7 +66,7 @@ func BenchmarkBitmapShortLived(b *testing.B) {
 }
 
 func BenchmarkITreeShortLived(b *testing.B) {
-	f := NewSharedBuffer(fsm.NewIntervalTreeFreeSpaceManager(), management.NewMemoryBuffer())
+	f := NewSimpleSharedBuffer(fsm.NewIntervalTreeFreeSpaceManager(), management.NewMemoryBuffer())
 	maxRequest := 64
 	batchSize := 64
 	for i := 0; i < b.N/batchSize; i++ {
