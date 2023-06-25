@@ -1,7 +1,7 @@
 package fsm
 
 import (
-	"github.com/Giulio2002/sharedpool/types"
+	"github.com/Giulio2002/sharedbuffer/types"
 )
 
 // Magic number for segment metadata objects which were allocated in the past and are just fleeting

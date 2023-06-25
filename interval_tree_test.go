@@ -1,24 +1,24 @@
-package sharedpool
+package sharedbuffer
 
 import (
 	"encoding/binary"
 	"sync"
 	"testing"
 
-	"github.com/Giulio2002/sharedpool/fsm"
-	"github.com/Giulio2002/sharedpool/management"
+	"github.com/Giulio2002/sharedbuffer/fsm"
+	"github.com/Giulio2002/sharedbuffer/management"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestMakeSimpleITree(t *testing.T) {
-	p := NewSharedPool(fsm.NewIntervalTreeFreeSpaceManager(), management.NewMemoryBuffer())
+	p := NewConcurrentSharedBuffer(fsm.NewIntervalTreeFreeSpaceManager(), management.NewMemoryBuffer())
 	buf, cancelfunc := p.Make(100)
 	defer cancelfunc()
 	assert.Equal(t, len(buf), 100)
 }
 
 func TestMakeConcurrentITree(t *testing.T) {
-	p := NewSharedPool(fsm.NewIntervalTreeFreeSpaceManager(), management.NewMemoryBuffer())
+	p := NewConcurrentSharedBuffer(fsm.NewIntervalTreeFreeSpaceManager(), management.NewMemoryBuffer())
 	base := uint32(0xffffff)
 	var wg sync.WaitGroup
 

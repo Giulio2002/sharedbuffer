@@ -1,24 +1,24 @@
-package sharedpool
+package sharedbuffer
 
 import (
 	"encoding/binary"
 	"sync"
 	"testing"
 
-	"github.com/Giulio2002/sharedpool/fsm"
-	"github.com/Giulio2002/sharedpool/management"
+	"github.com/Giulio2002/sharedbuffer/fsm"
+	"github.com/Giulio2002/sharedbuffer/management"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestMakeSimple(t *testing.T) {
-	p := NewSharedPool(fsm.NewCountingFreeSpaceManager(), management.NewMemoryBuffer())
+	p := NewConcurrentSharedBuffer(fsm.NewCountingFreeSpaceManager(), management.NewMemoryBuffer())
 	buf, cancelfunc := p.Make(100)
 	defer cancelfunc()
 	assert.Equal(t, len(buf), 100)
 }
 
 func TestMakeConcurrent(t *testing.T) {
-	p := NewSharedPool(fsm.NewCountingFreeSpaceManager(), management.NewMemoryBuffer())
+	p := NewConcurrentSharedBuffer(fsm.NewCountingFreeSpaceManager(), management.NewMemoryBuffer())
 	base := uint32(0xffffff)
 	var wg sync.WaitGroup
 

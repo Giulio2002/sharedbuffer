@@ -1,6 +1,6 @@
 package fsm
 
-import "github.com/Giulio2002/sharedpool/types"
+import "github.com/Giulio2002/sharedbuffer/types"
 
 type intervalTreeFreeSpaceManager struct {
 	tree *types.IntervalTree
