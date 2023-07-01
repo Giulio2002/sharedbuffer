@@ -1,30 +1,46 @@
 package fsm
 
-import "github.com/Giulio2002/sharedbuffer/types"
+import (
+	"github.com/google/btree"
+)
+
+type Item struct {
+	offset int // Key of the Btree
+	size   int // Value of the btree
+}
+
+func (i Item) Less(than btree.Item) bool {
+	return i.offset < than.(Item).offset
+}
 
 type intervalTreeFreeSpaceManager struct {
-	tree *types.AVLTree
+	tree *btree.BTree
 }
 
 func NewIntervalTreeFreeSpaceManager() FreeSpaceManager {
 	return &intervalTreeFreeSpaceManager{
-		tree: &types.AVLTree{},
+		tree: btree.New(16),
 	}
 }
 
 func (t *intervalTreeFreeSpaceManager) Dirty(size int) (offset int, c cancelFunc) {
+	item := Item{
+		size: size,
+	}
 	offset = 0
-	t.tree.InOrderTraversal(func(n *types.Node) bool {
-		if n.Key-offset >= size {
+	t.tree.Ascend(func(it btree.Item) bool {
+		obj := it.(Item)
+		if obj.offset-offset >= size {
 			return false
 		}
 
-		offset = n.Key + n.Value
+		offset = obj.offset + obj.size
 		return true
 	})
-	t.tree.Insert(offset, size)
+	item.offset = offset
+	t.tree.ReplaceOrInsert(item)
 	c = func() {
-		t.tree.Delete(offset)
+		t.tree.Delete(item)
 	}
 	return
 }

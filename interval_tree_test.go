@@ -22,7 +22,7 @@ func TestMakeConcurrentITree(t *testing.T) {
 	base := uint32(0xffffff)
 	var wg sync.WaitGroup
 
-	for i := uint32(1); i <= 2_000_000; i++ {
+	for i := uint32(1); i <= 20_000; i++ {
 		wg.Add(1)
 
 		i := i

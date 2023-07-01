@@ -31,7 +31,7 @@ buf, cancelFn := sharedbuffer.Make(4)
 defer cancelFn()
 ```
 
-By default the global shared buffer will have automatic locking and will be based on interval-trees rather than to the other algorithms.
+By default the global shared buffer will have automatic locking and will be based on contiguos execution rather than to the other algorithms.
 
 ### Non-global custom buffer
 
@@ -74,5 +74,5 @@ Finding free slots in the interval tree algorithm involves traversing the tree t
 
 #### Complexity
 
-Finding Free Slots: O(log n) - The interval tree algorithm has logarithmic time complexity for finding free slots. It performs a search in the interval tree, traversing nodes until it identifies a suitable free interval that can accommodate the requested buffer size.
+Finding Free Slots: O(n) - The interval tree algorithm has logarithmic time complexity for finding free slots. It performs a search in the interval tree, traversing nodes until it identifies a suitable free interval that can accommodate the requested buffer size.
 
