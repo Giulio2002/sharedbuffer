@@ -6,95 +6,87 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestIntervalTree(t *testing.T) {
-	assert := assert.New(t)
-	it := &IntervalTree{}
+func TestAVLTree_InsertAndInOrderTraversal(t *testing.T) {
+	tree := AVLTree{}
+	tree.Insert(5, 10)
+	tree.Insert(3, 20)
+	tree.Insert(7, 30)
+	tree.Insert(2, 40)
+	tree.Insert(4, 50)
 
-	// Test insertions
-	it.Insert(Interval{15, 20})
-	assert.NotNil(it.Root, "Root should not be nil after insert")
-	assert.Equal(Interval{15, 20}, it.Root.Interval, "Root interval should be [15, 20] after insert")
-
-	it.Insert(Interval{10, 30})
-	assert.Equal(Interval{15, 20}, it.Root.Interval, "Root interval should be [15, 20] after insert")
-
-	it.Insert(Interval{17, 19})
-	it.Insert(Interval{5, 20})
-	it.Insert(Interval{12, 15})
-	it.Insert(Interval{30, 40})
-
-	// Test deletions
-	it.Delete(Interval{10, 30})
-	assert.Equal(Interval{15, 20}, it.Root.Interval, "Root interval should be [15, 20] after delete")
-}
-
-func TestEmptyIntervalTree(t *testing.T) {
-	assert := assert.New(t)
-	it := &IntervalTree{}
-
-	// Test deletion from an empty tree
-	it.Delete(Interval{10, 30})
-	assert.Nil(it.Root, "Root should be nil when deleting from an empty tree")
-}
-
-// helper function to get absolute value
-func abs(n int) int {
-	if n < 0 {
-		return -n
-	}
-	return n
-}
-
-// isBalanced checks if the tree rooted at node is balanced or not
-func isBalanced(node *Node) bool {
-	if node == nil {
+	expectedOrder := []int{2, 3, 4, 5, 7}
+	traversalResult := make([]int, 0)
+	traversalFunc := func(node *Node) bool {
+		traversalResult = append(traversalResult, node.Key)
 		return true
 	}
 
-	leftHeight := height(node.Left)
-	rightHeight := height(node.Right)
+	tree.InOrderTraversal(traversalFunc)
 
-	return abs(leftHeight-rightHeight) <= 1 && isBalanced(node.Left) && isBalanced(node.Right)
+	assert.Equal(t, expectedOrder, traversalResult, "In-order traversal should match expected order")
 }
 
-func TestBalancing(t *testing.T) {
-	assert := assert.New(t)
-	it := &IntervalTree{}
+func TestAVLTree_DeleteAndInOrderTraversal(t *testing.T) {
+	tree := AVLTree{}
+	tree.Insert(5, 10)
+	tree.Insert(3, 20)
+	tree.Insert(7, 30)
+	tree.Insert(2, 40)
+	tree.Insert(4, 50)
 
-	// Test insertions
-	it.Insert(Interval{15, 20})
-	it.Insert(Interval{10, 30})
-	it.Insert(Interval{17, 19})
-	it.Insert(Interval{5, 20})
-	it.Insert(Interval{12, 15})
-	it.Insert(Interval{30, 40})
+	tree.Delete(3)
 
-	assert.True(isBalanced(it.Root), "Tree should be balanced after insertions")
+	expectedOrder := []int{2, 4, 5, 7}
+	traversalResult := make([]int, 0)
+	traversalFunc := func(node *Node) bool {
+		traversalResult = append(traversalResult, node.Key)
+		return true
+	}
 
-	// Test deletions
-	it.Delete(Interval{10, 30})
+	tree.InOrderTraversal(traversalFunc)
 
-	assert.True(isBalanced(it.Root), "Tree should be balanced after deletions")
+	assert.Equal(t, expectedOrder, traversalResult, "In-order traversal after deletion should match expected order")
 }
 
-func TestFindFreeInterval(t *testing.T) {
-	assert := assert.New(t)
-	it := &IntervalTree{}
+func TestAVLTree_InsertDuplicateKey(t *testing.T) {
+	tree := AVLTree{}
+	tree.Insert(5, 10)
+	tree.Insert(3, 20)
+	tree.Insert(7, 30)
+	tree.Insert(2, 40)
+	tree.Insert(4, 50)
+	tree.Insert(3, 60) // Inserting with duplicate key
 
-	// Test empty tree
-	freeInterval := it.FindFreeInterval(10)
-	assert.Equal(Interval{1, 11}, freeInterval, "Free interval should be [1, 11] in an empty tree")
+	expectedOrder := []int{2, 3, 4, 5, 7}
+	traversalResult := make([]int, 0)
+	traversalFunc := func(node *Node) bool {
+		traversalResult = append(traversalResult, node.Key)
+		return true
+	}
 
-	// Add intervals with a gap in the middle
-	it.Insert(Interval{15, 20})
-	it.Insert(Interval{7, 12})
-	it.Insert(Interval{21, 30})
-	it.Insert(Interval{30, 40})
-	freeInterval = it.FindFreeInterval(5)
-	assert.Equal(Interval{1, 6}, freeInterval, "Free interval should be [21, 26]")
+	tree.InOrderTraversal(traversalFunc)
 
-	// Fill the gap
-	it.Insert(Interval{1, 6})
-	freeInterval = it.FindFreeInterval(5)
-	assert.Equal(Interval{41, 46}, freeInterval, "Free interval should be [41, 46]")
+	assert.Equal(t, expectedOrder, traversalResult, "In-order traversal should ignore duplicate keys")
+}
+
+func TestAVLTree_DeleteNonExistentKey(t *testing.T) {
+	tree := AVLTree{}
+	tree.Insert(5, 10)
+	tree.Insert(3, 20)
+	tree.Insert(7, 30)
+	tree.Insert(2, 40)
+	tree.Insert(4, 50)
+
+	tree.Delete(8) // Deleting non-existent key
+
+	expectedOrder := []int{2, 3, 4, 5, 7}
+	traversalResult := make([]int, 0)
+	traversalFunc := func(node *Node) bool {
+		traversalResult = append(traversalResult, node.Key)
+		return true
+	}
+
+	tree.InOrderTraversal(traversalFunc)
+
+	assert.Equal(t, expectedOrder, traversalResult, "In-order traversal should not be affected by deleting non-existent key")
 }
